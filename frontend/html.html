@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EWS Bedono - Visualisasi Data Cuaca</title>
+    <!-- Lucide Icons untuk ikon UI -->
+    <style>
+:root {
+            --bg-dark: #ffffff; /* Latar belakang utama putih */
+            --card-bg: #f4fbf5; /* Latar belakang kartu putih kehijauan */
+            --card-inner: #e8f5e9; /* Hijau muda untuk elemen dalam */
+            --accent-blue: #28a745; /* Mengubah aksen utama menjadi hijau */
+            --text-main: #1a251e; /* Teks berwarna gelap agar terbaca */
+            --text-sub: #68796d; /* Teks sekunder berwarna abu-abu kehijauan */
+            --border-color: #c8e6c9; /* Garis batas hijau muda */
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --info: #3b82f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding-top: 70px; /* Spacer untuk fixed header */
+        }
+
+        /* --- HEADER FIXED --- */
+    header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background-color: rgba(255, 255, 255, 0.95); /* Diubah ke putih transparan */
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 1000;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--text-main);
+        }
+
+        .brand-icon {
+            color: var(--accent-blue);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .location-tag {
+            background: var(--card-bg);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-live {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success);
+            animation: pulse 1.5s infinite;
+        }
+
+        .badge-live.gangguan {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--danger);
+    }
+
+    .badge-live.gangguan .pulse-dot {
+        background-color: var(--danger);
+        box-shadow: 0 0 8px var(--danger);
+    }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        /* --- MAIN CONTAINER --- */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Title Area */
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 1.6rem;
+            margin-bottom: 6px;
+        }
+
+        .page-header p {
+            color: var(--text-sub);
+            font-size: 0.9rem;
+        }
+
+        .update-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+        }
+
+        .btn-icon {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-icon:hover {
+            background: var(--border-color);
+        }
+
+        /* --- METRIC CARDS: 4 KOLOM SAMA BESAR --- */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            width: 100%;
+            margin-bottom: 24px;
+            align-items: stretch;
+        }
+
+        .metric-card {
+            width: 100%;
+            min-width: 0;
+            height: 100%;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .metric-icon {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+
+        .metric-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .metric-icon.perhatian {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .metric-icon.info {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--info);
+        }
+
+        .metric-icon.waspada {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .status-badge.perhatian {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .status-badge.info {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--info);
+        }
+
+        .status-badge.waspada {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .metric-chart {
+            width: 100%;
+            margin-top: 8px;
+            flex: 1;
+            display: flex;
+            min-width: 0;
+        }
+
+        .metric-chart iframe {
+            display: block;
+            width: 100%;
+            height: 260px;
+            border: 1px solid #cccccc;
+            border-radius: 8px;
+            margin: 0;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+   .card-icon {
+            background: rgba(40, 167, 69, 0.15); /* Latar hijau muda transparan */
+            padding: 8px;
+            border-radius: 8px;
+            color: var(--accent-blue);
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .status-perhatian { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .status-normal { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .status-info { background: rgba(59, 130, 246, 0.15); color: var(--info); }
+        .status-waspada { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-sublabel {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+
+        .metric-unit {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            font-weight: 400;
+        }
+
+        .metric-trend {
+            font-size: 0.75rem;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        #windDirectionText {
+    color: var(--accent-blue);
+    }
+
+        .trend-up { color: var(--warning); }
+        .trend-down { color: var(--accent-blue); }
+
+        /* Warna trend dinamis */
+            .trend-naik {
+                color: #ef4444 !important;
+            }
+
+            .trend-turun {
+                color: #f59e0b !important;
+            }
+
+            .trend-stabil {
+                color: #3b82f6 !important;
+            }
+  .metric-desc {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            margin-top: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05); /* Garis batas gelap transparan */
+            padding-top: 8px;
+        }
+
+        /* --- DASHBOARD MIDDLE SECTION --- */
+        .middle-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .toggle-group {
+            background: var(--bg-dark);
+            padding: 3px;
+            border-radius: 8px;
+            display: flex;
+            gap: 2px;
+        }
+
+        .toggle-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: var(--accent-blue);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* Tidal Chart Visual Mockup */
+        .tidal-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+            background: var(--card-inner);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-item .val { font-size: 1.2rem; font-weight: 700; color: var(--accent-blue); }
+        .stat-item .lbl { font-size: 0.7rem; color: var(--text-sub); }
+
+        .chart-placeholder {
+            height: 160px;
+            width: 100%;
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .alert-box {
+            background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px; padding: 12px; display: flex; gap: 10px; font-size: 0.8rem; color: #fca5a5;
+        }
+        .rob-alert-banner { margin-top:12px; padding:12px 14px; border:1px solid #c8e6c9; border-radius:10px; background:#f2fbf4; color:#285d39; display:flex; flex-direction:column; gap:4px; font-size:.85rem; }
+        .rob-alert-banner.high { border-color:#e5a3a8; background:#fff1f2; color:#9f1239; }
+        .rob-alert-banner.pending { border-color:#e7d7a4; background:#fffbeb; color:#92400e; }
+
+        /* Wind Compass Vector Field Mockup */
+        .wind-map {
+            height: 220px;
+            background: var(--card-inner);
+            border-radius: 8px;
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            align-items: center;
+            justify-items: center;
+            padding: 10px;
+        }
+
+        .wind-arrow {
+            color: var(--accent-blue);
+            transform: rotate(45deg);
+            opacity: 0.8;
+            transition: 0.3s;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 0.7rem;
+            color: var(--text-sub);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+        /* --- CALENDAR SECTION --- */
+        .calendar-header-nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .cal-day-name {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            padding: 4px 0;
+        }
+
+        .cal-date {
+            aspect-ratio: 1;
+            background: var(--card-inner);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            cursor: pointer;
+            position: relative;
+            border: 1px solid transparent;
+            transition: 0.2s;
+        }
+
+        .cal-date:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .cal-date.empty { background: transparent; cursor: default; }
+
+        /* Color classes for Calendar risk levels */
+        .risk-aman { background-color: #18ba3e70; border-color: #c6dbcb; } .risk-aman .risk-dot { background-color: #28a745; }
+        .risk-bahaya { background-color: #b21a2784; border-color: #a88084; } .risk-bahaya .risk-dot { background-color: #dc3545; }
+        .risk-unavailable { background:#f3f4f6; border-color:#d1d5db; color:#6b7280; } .risk-unavailable .risk-dot { background:#9ca3af; }
+
+        .risk-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            margin-top: 2px;
+            background: currentColor;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            border-top: 1px solid var(--border-color);
+            margin-top: 40px;
+        }
+
+        /* --- RESPONSIVE MEDIA QUERIES (MOBILE LAYOUT) --- */
+        @media (max-width: 900px) {
+            .middle-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 1000px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding-top: 60px;
+            }
+            header {
+                padding: 0 16px;
+            }
+            .location-tag {
+                display: none; /* Sembunyikan lokasi teks panjang di HP agar rapi */
+            }
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            .tidal-stats {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+            .cal-date {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- FIXED HEADER -->
+    <header>
+        <div class="brand">
+            <i data-lucide="waves" class="brand-icon"></i>
+            <span>EWS Bedono</span>
+        </div>
+        <div class="header-controls">
+            <div class="location-tag">
+                <i data-lucide="map-pin" size="14"></i>
+                <span>Sayung, Demak</span>
+            </div>
+            <div class="badge-live" id="connectionStatus">
+                <div class="pulse-dot"></div>
+                <span>Live</span>
+            </div>
+            <button class="btn-icon" id="btnNotification" title="Notifikasi">
+                <i data-lucide="bell" size="18"></i>
+            </button>
+        </div>
+    </header>
+
+    
+    <!-- MAIN CONTENT -->
+    <div class="container">
+
+        <!-- Title Section -->
+        <div class="page-header">
+            <h1>Kondisi Cuaca Terkini</h1>
+            <p>Data real-time dari stasiun pengamatan Algomarine dan WALHI · Desa Bedono, Kecamatan Sayung, Kabupaten Demak</p>
+            <div class="update-bar">
+                <i data-lucide="clock" size="14"></i>
+                <span> Diperbarui: <span id="updatedAt">--</span></span>
+                <button class="btn-icon" id="refreshButton" style="padding: 4px 8px; font-size: 0.75rem;">
+                    <i data-lucide="refresh-cw" size="12"></i>
+                </button>
+            </div>
+            <div id="robAlertBanner" class="rob-alert-banner" role="status" aria-live="polite">
+                <strong id="robAlertTitle">Memeriksa prediksi banjir rob…</strong>
+                <span id="robAlertDetail">Status akan ditampilkan setelah pipeline Python selesai.</span>
+            </div>
+        </div>
+
+  <!-- ===== Metric cards ===== -->
+  <section class="metrics-grid">
+
+  <!--1. KECEPATAN ANGIN========================== -->
+  <article class="metric-card">
+
+    <div class="metric-top">
+      <span class="metric-icon perhatian">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 8h11a3 3 0 1 0-3-3"/>
+          <path d="M3 16h15a3 3 0 1 1-3 3"/>
+        </svg>
+      </span>
+
+    </div>
+
+    <p class="metric-label">Kecepatan Angin</p>
+    <p class="metric-sublabel">Wind Speed</p>
+</article>
+
+
+  <!-- =========================
+       2. KELEMBAPAN
+  ========================== -->
+  <article class="metric-card">
+
+    <div class="metric-top">
+      <span class="metric-icon info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2s6 7 6 12a6 6 0 0 1-12 0c0-5 6-12 6-12z"/>
+        </svg>
+      </span>
+
+    </div>
+
+    <p class="metric-label">Kelembapan</p>
+    <p class="metric-sublabel">Humidity</p>
+</article>
+
+
+  <!-- =========================
+       3. SUHU UDARA
+  ========================== -->
+  <article class="metric-card">
+
+    <div class="metric-top">
+      <span class="metric-icon waspada">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 3v10a4 4 0 1 0 2 0V3z"/>
+        </svg>
+      </span>
+
+    </div>
+
+    <p class="metric-label">Suhu Udara</p>
+    <p class="metric-sublabel">Temperature</p>
+</article>
+
+
+  <!-- =========================
+       4. CURAH HUJAN
+  ========================== -->
+  <article class="metric-card">
+
+    <div class="metric-top">
+      <span class="metric-icon perhatian">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 16a4 4 0 1 0-7.8-1.5A4.5 4.5 0 0 0 10 23"/>
+          <path d="M8 20v2M12 21v2M16 20v2"/>
+        </svg>
+      </span>
+
+    </div>
+
+    <p class="metric-label">Curah Hujan (1 Jam)</p>
+    <p class="metric-sublabel">Rainfall 1-Hour</p>
+</article>
+
+</section>
+
+<!-- Middle Section: Tidal Graph & Wind Direction -->
+<div class="middle-grid">
+
+    <!-- Tidal Chart Card -->
+    <div class="section-card">
+
+        <div class="section-header">
+            <div class="section-title">
+                <i data-lucide="waves" class="brand-icon"></i>
+
+                <div>
+                    <div>Grafik Pasang Surut</div>
+                    <div style="font-size: 0.75rem; color: var(--text-sub); font-weight: normal;">
+                        Tidal Chart · Sayung, Demak
+                    </div>
+                </div>
+            </div>
+
+            <div class="toggle-group">
+                <button class="toggle-btn active" id="btnHariIni">
+                    Hari Ini
+                </button>
+
+                <button class="toggle-btn" id="btn7Hari">
+                    7 Hari
+                </button>
+            </div>
+        </div>
+
+        <!-- Grafik pasut dirender dari endpoint backend /tide?results=800 -->
+        <div class="chart-wrap" id="tideChartWrap" style="min-height:260px; border:1px solid #d8e4da; border-radius:8px; padding:8px; overflow:hidden;">
+            <div id="tideChart" role="img" aria-label="Grafik riwayat pasang surut" style="min-height:240px; display:flex; align-items:center; justify-content:center; color:var(--text-sub);">Memuat data pasang surut dari backend...</div>
+        </div>
+
+        <div style="font-size: 0.7rem; color: var(--text-sub); margin-top: 12px; display:flex; align-items:center; gap:6px;">
+            <i data-lucide="info" size="12"></i>
+
+            <span>
+                Sumber: ALGOMARINE dan WALHI - Stasiun Pasang Surut Sayung, Demak
+            </span>
+        </div>
+
+    </div>
+
+
+    <!-- Wind Direction Card -->
+    <div class="section-card">
+
+        <div class="section-header">
+            <div class="section-title">
+
+                <i data-lucide="navigation" class="brand-icon"></i>
+
+                <div>
+                    <div>Arah Angin</div>
+
+                    <div style="font-size: 0.75rem; color: var(--text-sub); font-weight: normal;">
+                        Wind Direction · Kompas Arah Angin
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Riwayat arah angin dirender dari endpoint backend /weather/history -->
+        <div class="chart-wrap" id="windChartWrap" style="min-height:260px; border:1px solid #d8e4da; border-radius:8px; padding:8px; overflow:hidden;">
+            <div id="windChart" role="img" aria-label="Kompas arah angin" style="min-height:240px; display:flex; align-items:center; justify-content:center; color:var(--text-sub);">Memuat kompas arah angin dari backend...</div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+
+            <span style="align-self:center;">
+                Kecepatan:
+            </span>
+
+            <div class="legend-item">
+                <div class="dot" style="background:#00b4d8;"></div>
+                &lt; 20 km/h
+            </div>
+
+            <div class="legend-item">
+                <div class="dot" style="background:#10b981;"></div>
+                20–30
+            </div>
+
+            <div class="legend-item">
+                <div class="dot" style="background:#f59e0b;"></div>
+                30–38
+            </div>
+
+            <div class="legend-item">
+                <div class="dot" style="background:#ef4444;"></div>
+                &gt; 38
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+        <!-- Calendar Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-title">
+                    <i data-lucide="calendar" class="brand-icon"></i>
+                    <div>
+                        <div>Kalender Banjir Rob</div>
+                        <div style="font-size: 0.75rem; color: var(--text-sub); font-weight: normal;">Rob Flood Calendar · Sayung, Demak</div>
+                    </div>
+                </div>
+                <div class="calendar-header-nav">
+                    <button class="btn-icon" id="btnPrevMonth"><i data-lucide="chevron-left" size="16"></i></button>
+                    <span id="currentMonthText" style="font-weight: 600; font-size: 0.9rem;">Juli 2026</span>
+                    <button class="btn-icon" id="btnNextMonth"><i data-lucide="chevron-right" size="16"></i></button>
+                </div>
+            </div>
+
+            <!-- Calendar Risk Legend -->
+            <div style="display: flex; gap: 16px; font-size: 0.75rem; margin-bottom: 12px; flex-wrap: wrap;">
+                <div class="legend-item"><div class="dot" style="background:#10b981;"></div> Aman</div>
+                <div class="legend-item"><div class="dot" style="background:#b91c1c;"></div> Tidak Aman</div>
+            </div>
+
+            <!-- Calendar Days Header -->
+            <div class="cal-grid">
+                <div class="cal-day-name">Min</div>
+                <div class="cal-day-name">Sen</div>
+                <div class="cal-day-name">Sel</div>
+                <div class="cal-day-name">Rab</div>
+                <div class="cal-day-name">Kam</div>
+                <div class="cal-day-name">Jum</div>
+                <div class="cal-day-name">Sab</div>
+            </div>
+
+            <!-- Calendar Dates Container -->
+            <div class="cal-grid" id="calendarDays">
+                <!-- Rendered dynamically by JS -->
+            </div>
+
+            <div style="font-size: 0.7rem; color: var(--text-sub); margin-top: 16px; display:flex; align-items:center; gap:6px;">
+                <i data-lucide="info" size="12"></i>
+                <span id="calendarDataNote">Kalender berdasarkan prediksi pasang surut (cm) dari pipeline Python · Klik tanggal untuk detail</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        © 2026 EWS Bedono · Data diperbarui setiap 10 menit · Sumber: Stasiun Pasang Surut Sayung, Demak
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Inisialisasi Ikon Lucide
+        lucide.createIcons();
+
+        // Notifikasi Button
+        document.getElementById('btnNotification').addEventListener('click', () => {
+            if (window.showRobAlert) window.showRobAlert();
+            else alert('Status peringatan belum tersedia.');
+        });
+
+        // Tombol Hari Ini / 7 Hari ditangani oleh frontend/script.js dan mengambil data dari backend.
+
+        // Kalender dan peringatan dimuat dari API backend /tide/forecast.
+        // Tidak ada lagi array status kalender statis di frontend.
+
+        // Re-render lucide icons untuk ikon yang ditambahkan dinamis via JS
+        lucide.createIcons();
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>

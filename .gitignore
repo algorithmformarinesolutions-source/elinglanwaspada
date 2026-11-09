@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.*
+!.env.example
+backend.env
+
+# Python
+.venv/
+**/.venv/
+__pycache__/
+*.pyc
+
+# Editor
+.vscode/
+**/.vscode/
+
+# Generated output
+Pasut_Tes_1_FULL_MONTH_FIX/output/*.csv
+Pasut_Tes_1_FULL_MONTH_FIX/output/tide_scheduler_state.json
