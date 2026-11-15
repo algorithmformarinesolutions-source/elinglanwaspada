@@ -1,5 +1,5 @@
 (() => {
-  const API_BASE = window.EWS_API_BASE || "http://localhost:3000";
+  const API_BASE = window.location.origin;
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
   let weatherOk = false, climateOk = false, tideOk = false;
