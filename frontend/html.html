@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EWS Bedono - Visualisasi Data Cuaca</title>
     <!-- Lucide Icons untuk ikon UI -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
 :root {
             --bg-dark: #ffffff; /* Latar belakang utama putih */
@@ -567,6 +568,53 @@
                 font-size: 0.75rem;
             }
         }
+
+
+        /* --- FOOTER: mengikuti desain index.html --- */
+        .site-footer {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            padding: 16px 32px;
+            border-top: 1px solid #e5e7eb;
+            background-color: #ffffff;
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .footer-logos {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-self: start;
+        }
+
+        .footer-logos img {
+            height: 36px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .footer-text {
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .site-footer {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                padding: 16px;
+            }
+
+            .footer-logos {
+                justify-self: center;
+            }
+
+            .footer-spacer {
+                display: none;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -575,16 +623,16 @@
     <header>
         <div class="brand">
             <i data-lucide="waves" class="brand-icon"></i>
-            <span>EWS Bedono</span>
+            <span>Eling lan Waspada (Coastal Early Warning System)</span>
         </div>
         <div class="header-controls">
             <div class="location-tag">
                 <i data-lucide="map-pin" size="14"></i>
                 <span>Sayung, Demak</span>
             </div>
-            <div class="badge-live" id="connectionStatus">
+            <div class="badge-live gangguan" id="connectionStatus">
                 <div class="pulse-dot"></div>
-                <span>Live</span>
+                <span>Gangguan</span>
             </div>
             <button class="btn-icon" id="btnNotification" title="Notifikasi">
                 <i data-lucide="bell" size="18"></i>
@@ -592,14 +640,13 @@
         </div>
     </header>
 
-    
     <!-- MAIN CONTENT -->
     <div class="container">
 
         <!-- Title Section -->
         <div class="page-header">
-            <h1>Kondisi Cuaca Terkini</h1>
-            <p>Data real-time dari stasiun pengamatan Algomarine dan WALHI · Desa Bedono, Kecamatan Sayung, Kabupaten Demak</p>
+            <h1>Kondisi Terkini</h1>
+            <p>Sistem Peringatan Dini · Kecamatan Sayung, Kabupaten Demak</p>
             <div class="update-bar">
                 <i data-lucide="clock" size="14"></i>
                 <span> Diperbarui: <span id="updatedAt">--</span></span>
@@ -842,8 +889,20 @@
     </div>
 
     <!-- FOOTER -->
-    <footer>
-        © 2026 EWS Bedono · Data diperbarui setiap 10 menit · Sumber: Stasiun Pasang Surut Sayung, Demak
+    <footer class="site-footer">
+        <!-- Logo instansi di sebelah kiri -->
+        <div class="footer-logos">
+            <img src="images.jpg" alt="Logo Instansi 1">
+            <img src="LOGO-WALHI-JATENG1.png" alt="Logo WALHI Jawa Tengah">
+        </div>
+
+        <!-- Teks footer tepat di tengah -->
+        <div class="footer-text">
+            © 2026 EWS (Eling lan Waspada) · Data diperbarui setiap 10 menit · Sumber: Stasiun Pasang Surut Sayung, Demak
+        </div>
+
+        <!-- Penyeimbang agar teks tetap berada tepat di tengah -->
+        <div class="footer-spacer"></div>
     </footer>
 
     <!-- JAVASCRIPT LOGIC -->
