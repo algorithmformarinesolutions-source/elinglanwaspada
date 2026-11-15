@@ -1,0 +1,105 @@
+
+name: Tide Forecast Pipeline
+
+on:
+  schedule:
+    # Setiap 3 jam
+    - cron: "0 */3 * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tide-forecast-pipeline
+  cancel-in-progress: false
+
+jobs:
+  generate-forecast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: Pasut_Tes_1_FULL_MONTH_FIX
+
+    env:
+      TZ: Asia/Jakarta
+      THINGSPEAK_CHANNEL_ID: ${{ secrets.THINGSPEAK_CHANNEL_ID }}
+      THINGSPEAK_READ_API_KEY: ${{ secrets.THINGSPEAK_READ_API_KEY }}
+      TIDE_THRESHOLD: "125"
+      TIDE_SAMPLE_FREQ: "15min"
+      TIDE_INTERPOLATION_METHOD: "auto"
+      TIDE_FORECAST_INTERVAL: "1h"
+      TIDE_SHOW_PLOT: "0"
+      HOBO_VALIDATION_ENABLED: "0"
+      TIDE_OUTPUT_FOLDER: output
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: Pasut_Tes_1_FULL_MONTH_FIX/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validate configuration
+        run: |
+          python -c "import os; assert os.environ.get('THINGSPEAK_CHANNEL_ID'), 'Missing channel ID'; assert os.environ.get('THINGSPEAK_READ_API_KEY'), 'Missing ThingSpeak read key'; print('Configuration OK')"
+
+      - name: Run tidal prediction pipeline
+        run: |
+          python run_pipeline.py \
+            --no-validation \
+            --no-plot \
+            --threshold 125 \
+            --forecast-interval 1h \
+            --outdir output
+
+      - name: Validate forecast outputs
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import pandas as pd
+
+          output = Path("output")
+
+          required = [
+              "05_forecast_threshold.csv",
+              "07_tide_calendar.csv",
+          ]
+
+          for filename in required:
+              file = output / filename
+
+              if not file.exists() or file.stat().st_size == 0:
+                  raise SystemExit(f"Output tidak tersedia: {filename}")
+
+              df = pd.read_csv(file)
+
+              if df.empty:
+                  raise SystemExit(f"Output kosong: {filename}")
+
+              print(f"OK: {filename} ({len(df)} baris)")
+
+          print("Semua output prediksi valid.")
+          PY
+
+      - name: Upload forecast artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tide-forecast-${{ github.run_id }}
+          path: |
+            Pasut_Tes_1_FULL_MONTH_FIX/output/05_forecast_threshold.csv
+            Pasut_Tes_1_FULL_MONTH_FIX/output/07_tide_calendar.csv
+          retention-days: 7
+          if-no-files-found: error

@@ -21,9 +21,9 @@ import pandas as pd
 # ============================================================
 # THINGSPEAK / STATION
 # ============================================================
-THINGSPEAK_CHANNEL_ID = int(os.environ.get("THINGSPEAK_CHANNEL_ID", "3433993"))
-THINGSPEAK_READ_API_KEY = os.environ.get("THINGSPEAK_READ_API_KEY", "38FITZRV5JCZN75R")
-THINGSPEAK_WRITE_API_KEY = os.environ.get("THINGSPEAK_WRITE_API_KEY", "57GQO1KIZZNQ4CBR")
+THINGSPEAK_CHANNEL_ID = int(os.environ["THINGSPEAK_CHANNEL_ID"])
+THINGSPEAK_READ_API_KEY = os.environ["THINGSPEAK_READ_API_KEY"]
+THINGSPEAK_WRITE_API_KEY = os.environ.get("THINGSPEAK_WRITE_API_KEY", "")
 THINGSPEAK_BASE_URL = "https://api.thingspeak.com"
 
 FIELD_MAP = {1: "tide_swl"}

@@ -20,3 +20,6 @@ __pycache__/
 # Generated output
 Pasut_Tes_1_FULL_MONTH_FIX/output/*.csv
 Pasut_Tes_1_FULL_MONTH_FIX/output/tide_scheduler_state.json
+# Generated prediction outputs
+Pasut_Tes_1_FULL_MONTH_FIX/output/
+Pasut_Tes_1_FIXED_DIR/output/
