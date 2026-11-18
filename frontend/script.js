@@ -200,7 +200,7 @@ function renderTide(range) {
       if (upcoming.length) {
         const first=upcoming[0], date=parseLocalDate(first.date);
         const dateLabel=date?date.toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"}):first.date;
-        setRobBanner("high", `POTENSI ROB: ${upcoming.length} tanggal melewati threshold`, `Tanggal terdekat: ${dateLabel}. Puncak prediksi ${format(first.maxWaterLevel,1)} cm; threshold ${format(data.threshold,1)} cm. Dibuat: ${new Date(data.generatedAt).toLocaleString("id-ID",{timeZone:"Asia/Jakarta"})} WIB.`);
+        setRobBanner("high", `WASPADA ROB: ${upcoming.length} hari berpotensi rob`, `Rob terdekat diperkirakan: ${dateLabel}. Pasang tertinggi diperkirakan ${format(first.maxWaterLevel,1)} cm; dengan batas waspada ${format(data.threshold,1)} cm.`);
       } else {
         setRobBanner("normal", "Tidak ada tanggal yang melewati threshold pada hasil prediksi", `Threshold ${format(data.threshold,1)} cm · ${data.forecastCount} titik prediksi · dibuat ${new Date(data.generatedAt).toLocaleString("id-ID",{timeZone:"Asia/Jakarta"})} WIB.`);
       }
