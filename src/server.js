@@ -4,15 +4,17 @@ require("dotenv").config({
 });
 
 const app = require("./app");
+
 const PORT = process.env.PORT || 3000;
 
-const {
-  startTideScheduler
-} = require("./services/tideScheduler");
-
 const server = app.listen(PORT, () => {
-  console.log(`EWS Bedono backend running on port ${PORT}`);
+  console.log(
+    `EWS Bedono backend running on port ${PORT}`
+  );
 
-  // Aktifkan pemeriksaan otomatis data pasang surut
-  startTideScheduler();
+  console.log(
+    "[TIDE] Prediksi pasut menggunakan CSV GitHub Actions."
+  );
 });
+
+module.exports = server;
